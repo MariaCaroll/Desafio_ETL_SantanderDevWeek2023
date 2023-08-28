@@ -1,8 +1,8 @@
 #Responsavel por fazer ETL.
 import pandas as pd #pip install pandas
 
-from BANCO.comandosSQL import insert_new_cliente, select_all_cliente, insert_new_produto, select_id_produto, select_all_produto
-from alerta import generate_new_alert
+from BANCO.comandosSQL import insert_new_cliente, select_all_cliente, insert_new_produto, select_id_produto, select_all_produto, insert_new_alerta
+from alerta import generate_new_alerta
 var_listAlerta = []
 #         --------- PRODUTO ------------EXTRAÇÃO ----------
 #Lendo arquivo excel da aba cliente e 
@@ -25,8 +25,8 @@ for item  in var_listProduto:
         print(f"O cliente: {var_strNomeProduto} já existe no banco de dados")
 
 
-#         --------- CLEINTE ------------EXTRAÇÃO -------
-#Lendo arquivo excel da aba cliente e 
+#         --------- CLEINTE ------------EXTRAÇÃO ------- TRANSFORMAÇÃO
+#Lendo arquivo excel da aba cliente e para cada cliente novo gerar um alerta com base no desconto
 var_dfCliente = pd.read_excel(f"aquivoETL.xlsx", sheet_name="cliente")
 var_listCLiente = var_dfCliente.to_numpy()
 
@@ -37,12 +37,11 @@ for item  in var_listCLiente:
     var_intStatus = item[1]
     var_strProduto = item[2]
     var_intRetorno = select_all_cliente(var_strNomeCliente, var_intStatus)
-    if var_intRetorno == 0:
+    if len(var_intRetorno) == 0:
         var_listProduto = select_id_produto(var_strProduto)
-        insert_new_cliente(var_strNomeCliente, var_listProduto[0],var_intStatus)
-        generate_new_alert(var_strNomeCliente, var_listProduto[1])
-        
+        insert_new_cliente(var_strNomeCliente, var_listProduto[0][0],var_intStatus)
+        var_strMensagem = generate_new_alerta(var_strNomeCliente, var_listProduto[0][1])
+        print(var_strMensagem)
+            
     else:
         print(f"O cliente: {var_strNomeCliente} já existe no banco de dados")
-
-#         --------- ALERTA ------------ TRANFORMAR - CARREGAR
